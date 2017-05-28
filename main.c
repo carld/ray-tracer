@@ -3,21 +3,23 @@
 #include     <string.h>
 #include     <X11/Xlib.h>
 
+#include "vec3.h"
+
 XImage *
 CreateTrueColorImage(Display * display, Visual * visual, unsigned char *image, int width, int height)
 {
   int    i         , j;
   unsigned char  *image32 = (unsigned char *)malloc(width * height * 4);
   unsigned char  *p = image32;
-  float r, g, b;
   for (i = 0; i < height; i++) {
     for (j = 0; j < width; j++) {
-      r =  (float) i / (float) height;
-      g =  (float) j / (float) width;
-      b =  0.2;
-      *p++ = (int) (b * 255);
-      *p++ = (int) (g * 255);
-      *p++ = (int) (r * 255);
+      vec3 col = { .v = { i / (float) height,
+                          j / (float) width,
+                          0.2} };
+      col = vec3_multiply(col, 255);
+      *p++ = col.v[2];
+      *p++ = col.v[1];
+      *p++ = col.v[0];
       *p++ = 0;
       }
     }
