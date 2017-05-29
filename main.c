@@ -6,7 +6,22 @@
 #include "vec3.h"
 #include "ray.h"
 
+int hit_sphere(vec3 center, float radius, ray r) {
+  vec3 oc = vec3_subtract_vec( r.A, center);
+  float a = vec3_dot(r.B, r.B);
+  float b = 2.0 * vec3_dot(oc, r.B);
+  float c = vec3_dot(oc, oc) - radius * radius;
+  float discriminant = b*b - 4 * a * c;
+  return discriminant > 0;
+}
+
 vec3 color(const ray r) {
+  vec3 v0 = { .x = 0, .y = 0, .z = -1 };
+  if (hit_sphere(v0, 0.5, r)) {
+    /* this returns red, x = r, y = g, z = b */
+    vec3 v_ = { .x = 1, .y = 0, .z = 0 };
+    return v_;
+  }
   vec3 unit_direction = unit_vector(r.B);
   float t = 0.5 * (unit_direction.y + 1.0);
   vec3 v1 = { .x = 1.0, .y = 1.0, .z = 1.0 };
@@ -71,7 +86,7 @@ int
 main(int argc, char **argv)
 {
   XImage         *ximage;
-  int    width = 640, height = 480;
+  int    width = 640, height = 320;
   Display        *display = XOpenDisplay(NULL);
   Visual         *visual = DefaultVisual(display, 0);
   Window    window = XCreateSimpleWindow(display, RootWindow(display, 0), 0, 0, width, height, 1, 0, 0);
