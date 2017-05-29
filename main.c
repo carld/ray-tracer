@@ -9,13 +9,30 @@
 #include "hitable.h"
 #include "camera.h"
 
-vec3 color(ray *r, struct sphere *spheres, int nsph) {
+vec3 random_in_unit_sphere() {
+  vec3 p;
+  do {
+    p = vec3_multiply_float(
+           vec3_subtract_vec(
+             (vec3) { .x = drand48(), .y = drand48(), .z = drand48() },
+             (vec3) { .x = 1, .y = 1, .z = 1 }
+             ), 2.0);
+  } while (vec3_squared_length(p) >= 1.0);
+  return p;
+}
+
+vec3 color(ray r, struct sphere *spheres, int nsph) {
   hit_record rec;
-  if (world_hit(spheres, nsph, r, 0.0, MAXFLOAT, &rec)) {
-    vec3 v_ = { .x = rec.normal.x + 1, .y = rec.normal.y + 1, .z = rec.normal.z + 1 };
-    return vec3_multiply_float(v_, 0.5f);
+
+  if (world_hit(spheres, nsph, &r, 0.001, MAXFLOAT, &rec)) {
+    vec3 target = vec3_add_vec(rec.p,
+                    vec3_add_vec(rec.normal, random_in_unit_sphere() ));
+    vec3 v_ = vec3_multiply_float(
+                color( (ray) { .A = rec.p, .B = vec3_subtract_vec(target, rec.p) } , spheres, nsph),
+                0.5);
+    return v_;
   } else {
-    vec3 unit_direction = unit_vector(r->B);
+    vec3 unit_direction = unit_vector(r.B);
     float t = 0.5f * (unit_direction.y + 1.0);
     vec3 white = { .x = 1.0f, .y = 1.0f, .z = 1.0f };
     vec3 blue = { .x = 0.5f, .y = 0.7f, .z = 1.0f };
@@ -31,7 +48,7 @@ CreateTrueColorImage(Display * display, Visual * visual, unsigned char *image, i
   int i, j, s;
   unsigned char  *image32 = (unsigned char *)malloc(width * height * 4);
   unsigned char  *p = image32;
-  int ns = 20;
+  int ns = 10;
 
   vec3 origin            = { .x = 0.0, .y = 0.0, .z = 0.0 };
 
@@ -57,10 +74,13 @@ CreateTrueColorImage(Display * display, Visual * visual, unsigned char *image, i
         float u = (j + drand48()) / (float) width;
         float v = ((height-i) + drand48()) / (float) height;
         r = camera_cast_ray(&cam, u, v);
-        vec3 p = ray_point_at_parameter(&r, 2.0f);
-        col = vec3_add_vec(col, color(&r, world, 2));
+        //vec3 p = ray_point_at_parameter(&r, 2.0f);
+        col = vec3_add_vec(col, color(r, world, 2));
       }
       col = vec3_divide_float(col, ns);
+
+      col = (vec3) { .x = sqrtf(col.x), .y = sqrtf(col.y), .z = sqrtf(col.z) };
+
       col = vec3_multiply_float(col, 255.99);
       *p++ = (int)col.z;
       *p++ = (int)col.y;

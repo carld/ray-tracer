@@ -13,6 +13,10 @@ float vec3_length(vec3 v) {
   return sqrtf(v.x*v.x + v.y*v.y + v.z*v.z);
 }
 
+float vec3_squared_length(vec3 v) {
+  return v.x*v.x + v.y*v.y + v.z*v.z;
+}
+
 vec3 vec3_multiply(vec3 v1, int n) {
   vec3 v_ = { .x = v1.x * n, .y = v1.y * n, .z = v1.z * n };
   return v_;
