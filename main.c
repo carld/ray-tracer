@@ -37,7 +37,7 @@ CreateTrueColorImage(Display * display, Visual * visual, unsigned char *image, i
   int i, j, s;
   unsigned char  *image32 = (unsigned char *)malloc(width * height * 4);
   unsigned char  *p = image32;
-  int ns = 50;
+  int ns = 100;
 
   vec3 origin            = { .x = 0.0, .y = 0.0, .z = 0.0 };
 
@@ -48,11 +48,13 @@ CreateTrueColorImage(Display * display, Visual * visual, unsigned char *image, i
   struct material gold_metal = { .albedo.x = 0.8, .albedo.y = 0.6, .albedo.z = 0.2, .scatter = metal_scatter  };
   struct material red_ceramic = { .albedo.x = 0.65, .albedo.y = 0.1, .albedo.z = 0.1, .scatter = lambertian_scatter };
   struct material yellow_ceramic = { .albedo.x = 0.8, .albedo.y = 0.8, .albedo.z = 0.0, .scatter = lambertian_scatter };
+  struct material dielectric = { .ref_idx = 1.5, .scatter = dielectric_scatter };
 
   struct sphere world[] = {
     { .center.x = 0, .center.y = 0, .center.z = -1, .radius = 0.5, .mat = & yellow_ceramic },
     { .center.x = -1, .center.y = 0, .center.z = -1, .radius = 0.5, .mat = & gold_metal },
-    { .center.x = 1, .center.y = 0, .center.z = -1, .radius = 0.5, .mat = & gray_metal },
+    { .center.x = 1, .center.y = 0, .center.z = -1, .radius = 0.5, .mat = & dielectric },
+    { .center.x = 1, .center.y = 0, .center.z = -1, .radius = -0.45, .mat = & dielectric },
     { .center.x = 0, .center.y = -100.5, .center.z = -1, .radius = 100, .mat = & red_ceramic  }
   };
 
@@ -70,7 +72,6 @@ CreateTrueColorImage(Display * display, Visual * visual, unsigned char *image, i
         float u = (j + drand48()) / (float) width;
         float v = ((height-i) + drand48()) / (float) height;
         r = camera_cast_ray(&cam, u, v);
-        //vec3 p = ray_point_at_parameter(&r, 2.0f);
         col = vec3_add_vec(col, color(r, world, sizeof(world) / sizeof(struct sphere), 0));
       }
       col = vec3_divide_float(col, ns);
