@@ -5,7 +5,7 @@ CFLAGS=-Wall -ansi -g -ggdb
 CFLAGS+= -I/usr/X11/include
 LFLAGS= -L/usr/X11/lib -lX11
 
-SRC=main.c
+SRC=main.c hitable.c material.c vec3.c ray.c
 OBJ:=$(SRC:.c=.o)
 BIN=raytracer
 

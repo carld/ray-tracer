@@ -15,14 +15,11 @@ vec3 color(ray r, struct sphere *spheres, int nsph, int depth) {
   if (world_hit(spheres, nsph, &r, 0.001, MAXFLOAT, &rec)) {
     ray scattered;
     vec3 attenuation;
-    if (depth < 50 && rec.mat
-
-    vec3 target = vec3_add_vec(rec.p,
-                    vec3_add_vec(rec.normal, random_in_unit_sphere() ));
-    vec3 v_ = vec3_multiply_float(
-                color( (ray) { .A = rec.p, .B = vec3_subtract_vec(target, rec.p) } , spheres, nsph),
-                0.5);
-    return v_;
+    if (depth < 8 && rec.mat->scatter(rec.mat, r, &rec, &attenuation, &scattered)) {
+      return vec3_multiply_vec(attenuation, color(scattered, spheres, nsph, depth+1));
+    } else {
+      return (vec3) { .x = 0, .y = 0, .z = 0 };
+    }
   } else {
     vec3 unit_direction = unit_vector(r.B);
     float t = 0.5f * (unit_direction.y + 1.0);
@@ -47,16 +44,23 @@ CreateTrueColorImage(Display * display, Visual * visual, unsigned char *image, i
   /* all rays have the same origin */
   ray r = { .A = origin };
 
+  struct material gray_metal = { .albedo.x = 0.8, .albedo.y = 0.8, .albedo.z = 0.8, .scatter = metal_scatter };
+  struct material gold_metal = { .albedo.x = 0.8, .albedo.y = 0.6, .albedo.z = 0.2, .scatter = metal_scatter  };
+  struct material red_ceramic = { .albedo.x = 0.65, .albedo.y = 0.1, .albedo.z = 0.1, .scatter = lambertian_scatter };
+  struct material yellow_ceramic = { .albedo.x = 0.8, .albedo.y = 0.8, .albedo.z = 0.0, .scatter = lambertian_scatter };
+
   struct sphere world[] = {
-    { .center.x = 0, .center.y = 0, .center.z = -1, .radius = 0.5 },
-    { .center.x = 0, .center.y = -100.5, .center.z = -1, .radius = 100 }
+    { .center.x = 0, .center.y = 0, .center.z = -1, .radius = 0.5, .mat = & yellow_ceramic },
+    { .center.x = -1, .center.y = 0, .center.z = -1, .radius = 0.5, .mat = & gold_metal },
+    { .center.x = 1, .center.y = 0, .center.z = -1, .radius = 0.5, .mat = & gray_metal },
+    { .center.x = 0, .center.y = -100.5, .center.z = -1, .radius = 100, .mat = & red_ceramic  }
   };
 
   camera cam = {
     .lower_left_corner.x = -2, .lower_left_corner.y = -1, .lower_left_corner.z = -1,
     .horizontal.x = 4.0, .horizontal.y = 0, .horizontal.z = 0,
     .vertical.x = 0.0, .vertical.y = 2.0, .vertical.z = 0.0,
-    .origin.x = 0.0, .origin.y = 0.0, .origin.z = 0.0
+    .origin.x = 0.0, .origin.y = 0.0, .origin.z = 3.0 
   };
 
   for (i = 0; i < height; i++) {
@@ -67,7 +71,7 @@ CreateTrueColorImage(Display * display, Visual * visual, unsigned char *image, i
         float v = ((height-i) + drand48()) / (float) height;
         r = camera_cast_ray(&cam, u, v);
         //vec3 p = ray_point_at_parameter(&r, 2.0f);
-        col = vec3_add_vec(col, color(r, world, 2));
+        col = vec3_add_vec(col, color(r, world, sizeof(world) / sizeof(struct sphere), 0));
       }
       col = vec3_divide_float(col, ns);
 
@@ -107,7 +111,7 @@ int
 main(int argc, char **argv)
 {
   XImage         *ximage;
-  int    width = 320, height = 160;
+  int    width = 640, height = 320;
   Display        *display = XOpenDisplay(NULL);
   Visual         *visual = DefaultVisual(display, 0);
   Window    window = XCreateSimpleWindow(display, RootWindow(display, 0), 0, 0, width, height, 1, 0, 0);
