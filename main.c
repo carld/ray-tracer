@@ -7,8 +7,9 @@
 #include "vec3.h"
 #include "ray.h"
 #include "hitable.h"
+#include "camera.h"
 
-vec3 color(const ray *r, struct sphere *spheres, int nsph) {
+vec3 color(ray *r, struct sphere *spheres, int nsph) {
   hit_record rec;
   if (world_hit(spheres, nsph, r, 0.0, MAXFLOAT, &rec)) {
     vec3 v_ = { .x = rec.normal.x + 1, .y = rec.normal.y + 1, .z = rec.normal.z + 1 };
@@ -27,13 +28,11 @@ vec3 color(const ray *r, struct sphere *spheres, int nsph) {
 XImage *
 CreateTrueColorImage(Display * display, Visual * visual, unsigned char *image, int width, int height)
 {
-  int    i         , j;
+  int i, j, s;
   unsigned char  *image32 = (unsigned char *)malloc(width * height * 4);
   unsigned char  *p = image32;
+  int ns = 20;
 
-  vec3 lower_left_corner = { .x = -2.0, .y = -1.0, .z = -1.0 };
-  vec3 horizontal        = { .x = 4.0, .y = 0.0, .z = 0.0 };
-  vec3 vertical          = { .x = 0.0, .y = 2.0, .z = 0.0 };
   vec3 origin            = { .x = 0.0, .y = 0.0, .z = 0.0 };
 
   /* all rays have the same origin */
@@ -44,15 +43,24 @@ CreateTrueColorImage(Display * display, Visual * visual, unsigned char *image, i
     { .center.x = 0, .center.y = -100.5, .center.z = -1, .radius = 100 }
   };
 
+  camera cam = {
+    .lower_left_corner.x = -2, .lower_left_corner.y = -1, .lower_left_corner.z = -1,
+    .horizontal.x = 4.0, .horizontal.y = 0, .horizontal.z = 0,
+    .vertical.x = 0.0, .vertical.y = 2.0, .vertical.z = 0.0,
+    .origin.x = 0.0, .origin.y = 0.0, .origin.z = 0.0
+  };
+
   for (i = 0; i < height; i++) {
     for (j = 0; j < width; j++) {
-      float u = j / (float) width;
-      float v = (height-i) / (float) height;
-      vec3 dir = vec3_add_vec(lower_left_corner,
-                              vec3_add_vec(vec3_multiply_float(horizontal, u),
-                                           vec3_multiply_float(vertical, v)));
-      r.B = dir;
-      vec3 col = color(&r, world, 2);
+      vec3 col = { .x = 0, .y = 0, .z = 0 };
+      for (s = 0; s < ns; s++) {
+        float u = (j + drand48()) / (float) width;
+        float v = ((height-i) + drand48()) / (float) height;
+        r = camera_cast_ray(&cam, u, v);
+        vec3 p = ray_point_at_parameter(&r, 2.0f);
+        col = vec3_add_vec(col, color(&r, world, 2));
+      }
+      col = vec3_divide_float(col, ns);
       col = vec3_multiply_float(col, 255.99);
       *p++ = (int)col.z;
       *p++ = (int)col.y;
