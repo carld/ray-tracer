@@ -8,23 +8,15 @@
 #include "ray.h"
 #include "hitable.h"
 #include "camera.h"
+#include "material.h"
 
-vec3 random_in_unit_sphere() {
-  vec3 p;
-  do {
-    p = vec3_multiply_float(
-           vec3_subtract_vec(
-             (vec3) { .x = drand48(), .y = drand48(), .z = drand48() },
-             (vec3) { .x = 1, .y = 1, .z = 1 }
-             ), 2.0);
-  } while (vec3_squared_length(p) >= 1.0);
-  return p;
-}
-
-vec3 color(ray r, struct sphere *spheres, int nsph) {
+vec3 color(ray r, struct sphere *spheres, int nsph, int depth) {
   hit_record rec;
-
   if (world_hit(spheres, nsph, &r, 0.001, MAXFLOAT, &rec)) {
+    ray scattered;
+    vec3 attenuation;
+    if (depth < 50 && rec.mat
+
     vec3 target = vec3_add_vec(rec.p,
                     vec3_add_vec(rec.normal, random_in_unit_sphere() ));
     vec3 v_ = vec3_multiply_float(
@@ -48,7 +40,7 @@ CreateTrueColorImage(Display * display, Visual * visual, unsigned char *image, i
   int i, j, s;
   unsigned char  *image32 = (unsigned char *)malloc(width * height * 4);
   unsigned char  *p = image32;
-  int ns = 10;
+  int ns = 50;
 
   vec3 origin            = { .x = 0.0, .y = 0.0, .z = 0.0 };
 
@@ -115,7 +107,7 @@ int
 main(int argc, char **argv)
 {
   XImage         *ximage;
-  int    width = 640, height = 320;
+  int    width = 320, height = 160;
   Display        *display = XOpenDisplay(NULL);
   Visual         *visual = DefaultVisual(display, 0);
   Window    window = XCreateSimpleWindow(display, RootWindow(display, 0), 0, 0, width, height, 1, 0, 0);

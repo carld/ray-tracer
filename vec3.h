@@ -52,6 +52,11 @@ vec3 vec3_subtract_vec(vec3 v1, vec3 v2) {
   return v_;
 }
 
+vec3 vec3_subtract_float(vec3 v1, float n) {
+  vec3 v_ = { .x = v1.x - n, .y = v1.y - n, .z = v1.z - n };
+  return v_;
+}
+
 vec3 unit_vector(vec3 v1) {
   vec3 v_ = vec3_divide_float(v1, vec3_length(v1));
   return v_;

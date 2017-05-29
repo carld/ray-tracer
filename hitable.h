@@ -55,4 +55,16 @@ int world_hit(struct sphere *spheres, int n, const ray *r, float t_min, float t_
   return hit_anything;
 }
 
+vec3 random_in_unit_sphere() {
+  vec3 p;
+  do {
+    p = vec3_multiply_float(
+           vec3_subtract_vec(
+             (vec3) { .x = drand48(), .y = drand48(), .z = drand48() },
+             (vec3) { .x = 1, .y = 1, .z = 1 }
+             ), 2.0);
+  } while (vec3_squared_length(p) >= 1.0);
+  return p;
+}
+
 #endif
