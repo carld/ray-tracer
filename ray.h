@@ -6,9 +6,9 @@ typedef struct ray {
   vec3 B; /* direction */
 } ray;
 
-vec3 ray_point_at_parameter(vec3 A, vec3 B, float t) {
-  vec3 v2 = vec3_add_vec( A, vec3_multiply_float(B, t) );
-  return v2;
+vec3 ray_point_at_parameter(const ray *r, float t) {
+  vec3 v_ = vec3_add_vec( r->A, vec3_multiply_float(r->B, t) );
+  return v_;
 }
 
 #endif
