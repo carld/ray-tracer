@@ -4,6 +4,17 @@
 #include     <X11/Xlib.h>
 
 #include "vec3.h"
+#include "ray.h"
+
+vec3 color(const ray r) {
+  vec3 unit_direction = unit_vector(r.B);
+  float t = 0.5 * (unit_direction.y + 1.0);
+  vec3 v1 = { .x = 1.0, .y = 1.0, .z = 1.0 };
+  vec3 v2 = { .x = 0.5, .y = 0.7, .z = 1.0 };
+  vec3 v3 = vec3_add_vec(vec3_multiply_float(v1, 1.0 - t),
+                         vec3_multiply_float(v2, t));
+  return v3;
+}
 
 XImage *
 CreateTrueColorImage(Display * display, Visual * visual, unsigned char *image, int width, int height)
@@ -11,15 +22,25 @@ CreateTrueColorImage(Display * display, Visual * visual, unsigned char *image, i
   int    i         , j;
   unsigned char  *image32 = (unsigned char *)malloc(width * height * 4);
   unsigned char  *p = image32;
+
+  vec3 lower_left_corner = { .x = -2.0, .y = -1.0, .z = -1.0 };
+  vec3 horizontal        = { .x = 4.0, .y = 0.0, .z = 0.0 };
+  vec3 vertical          = { .x = 0.0, .y = 2.0, .z = 0.0 };
+  vec3 origin            = { .x = 0.0, .y = 0.0, .z = 0.0 };
+
   for (i = 0; i < height; i++) {
     for (j = 0; j < width; j++) {
-      vec3 col = { .v = { i / (float) height,
-                          j / (float) width,
-                          0.2} };
-      col = vec3_multiply(col, 255);
-      *p++ = col.v[2];
-      *p++ = col.v[1];
-      *p++ = col.v[0];
+      float u = j / (float) width;
+      float v = (height-i) / (float) height;
+      vec3 dir = vec3_add_vec(lower_left_corner,
+                              vec3_add_vec(vec3_multiply_float(horizontal, u),
+                                           vec3_multiply_float(vertical, v)));
+      ray r = { .A = origin, .B = dir };
+      vec3 col = vec3_multiply_float(color(r), 255.99);
+
+      *p++ = (int)col.z;
+      *p++ = (int)col.y;
+      *p++ = (int)col.x;
       *p++ = 0;
       }
     }
