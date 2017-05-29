@@ -10,15 +10,7 @@ typedef struct camera {
   vec3 vertical;
 } camera;
 
-ray camera_cast_ray(camera *cam, float u, float v) {
-  return (ray) { .A = cam->origin,
-                 .B = vec3_subtract_vec(
-                                vec3_add_vec(
-                                  cam->lower_left_corner,
-                                    vec3_add_vec(
-                                      vec3_multiply_float(cam->horizontal, u),
-                                      vec3_multiply_float(cam->vertical, v))),
-                                cam->origin) } ;
-}
+ray camera_cast_ray(camera *cam, float u, float v);
+camera camera_pos(vec3 lookfrom, vec3 lookat, vec3 vup, float vfov, float aspect);
 
 #endif

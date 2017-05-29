@@ -37,7 +37,7 @@ CreateTrueColorImage(Display * display, Visual * visual, unsigned char *image, i
   int i, j, s;
   unsigned char  *image32 = (unsigned char *)malloc(width * height * 4);
   unsigned char  *p = image32;
-  int ns = 100;
+  int ns = 5;
 
   vec3 origin            = { .x = 0.0, .y = 0.0, .z = 0.0 };
 
@@ -58,12 +58,13 @@ CreateTrueColorImage(Display * display, Visual * visual, unsigned char *image, i
     { .center.x = 0, .center.y = -100.5, .center.z = -1, .radius = 100, .mat = & red_ceramic  }
   };
 
-  camera cam = {
-    .lower_left_corner.x = -2, .lower_left_corner.y = -1, .lower_left_corner.z = -1,
-    .horizontal.x = 4.0, .horizontal.y = 0, .horizontal.z = 0,
-    .vertical.x = 0.0, .vertical.y = 2.0, .vertical.z = 0.0,
-    .origin.x = 0.0, .origin.y = 0.0, .origin.z = 3.0 
-  };
+  camera cam = camera_pos(
+      (vec3){.x=-2,.y=2,.z=3}, /* look from */
+      (vec3){.x=0,.y=0,.z=0}, /* look at */
+      (vec3){.x=0,.y=1,.z=0},  /* up */
+      90,                      /* field of view */
+      (float)width/(float)height /* aspect ratio */
+      );
 
   for (i = 0; i < height; i++) {
     for (j = 0; j < width; j++) {
