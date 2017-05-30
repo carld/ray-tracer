@@ -8,9 +8,11 @@ typedef struct camera {
   vec3 lower_left_corner;
   vec3 horizontal;
   vec3 vertical;
+  vec3 u, v, w;
+  float lens_radius;
 } camera;
 
 ray camera_cast_ray(camera *cam, float u, float v);
-camera camera_pos(vec3 lookfrom, vec3 lookat, vec3 vup, float vfov, float aspect);
+void camera_pos(camera *cam, vec3 lookfrom, vec3 lookat, vec3 vup, float vfov, float aspect, float aperture, float focus_dist);
 
 #endif

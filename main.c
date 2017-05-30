@@ -37,12 +37,7 @@ CreateTrueColorImage(Display * display, Visual * visual, unsigned char *image, i
   int i, j, s;
   unsigned char  *image32 = (unsigned char *)malloc(width * height * 4);
   unsigned char  *p = image32;
-  int ns = 5;
-
-  vec3 origin            = { .x = 0.0, .y = 0.0, .z = 0.0 };
-
-  /* all rays have the same origin */
-  ray r = { .A = origin };
+  int ns = 100;
 
   struct material gray_metal = { .albedo.x = 0.8, .albedo.y = 0.8, .albedo.z = 0.8, .scatter = metal_scatter };
   struct material gold_metal = { .albedo.x = 0.8, .albedo.y = 0.6, .albedo.z = 0.2, .scatter = metal_scatter  };
@@ -57,13 +52,20 @@ CreateTrueColorImage(Display * display, Visual * visual, unsigned char *image, i
     { .center.x = 1, .center.y = 0, .center.z = -1, .radius = -0.45, .mat = & dielectric },
     { .center.x = 0, .center.y = -100.5, .center.z = -1, .radius = 100, .mat = & red_ceramic  }
   };
-
-  camera cam = camera_pos(
-      (vec3){.x=-2,.y=2,.z=3}, /* look from */
-      (vec3){.x=0,.y=0,.z=0}, /* look at */
-      (vec3){.x=0,.y=1,.z=0},  /* up */
-      90,                      /* field of view */
-      (float)width/(float)height /* aspect ratio */
+  vec3 lookfrom = (vec3) { .x = 3, .y = 3, .z = 2 };
+  vec3 lookat   = (vec3) { .x = 0, .y = 0, .z = -1 };
+  float dist_to_focus = vec3_length(vec3_subtract_vec(lookfrom, lookat));
+  float aperture = 2.0;
+  camera cam;
+  camera_pos(
+      &cam,
+      lookfrom,
+      lookat,
+      (vec3) {.x = 0, .y = 1, .z = 0},  /* up */
+      20,                       /* field of view */
+      (float)width/(float)height, /* aspect ratio */
+      aperture,
+      dist_to_focus
       );
 
   for (i = 0; i < height; i++) {
@@ -72,13 +74,11 @@ CreateTrueColorImage(Display * display, Visual * visual, unsigned char *image, i
       for (s = 0; s < ns; s++) {
         float u = (j + drand48()) / (float) width;
         float v = ((height-i) + drand48()) / (float) height;
-        r = camera_cast_ray(&cam, u, v);
+        ray r = camera_cast_ray(&cam, u, v);
         col = vec3_add_vec(col, color(r, world, sizeof(world) / sizeof(struct sphere), 0));
       }
       col = vec3_divide_float(col, ns);
-
       col = (vec3) { .x = sqrtf(col.x), .y = sqrtf(col.y), .z = sqrtf(col.z) };
-
       col = vec3_multiply_float(col, 255.99);
       *p++ = (int)col.z;
       *p++ = (int)col.y;
