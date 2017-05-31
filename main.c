@@ -9,13 +9,14 @@
 #include "hitable.h"
 #include "camera.h"
 #include "material.h"
+#include <float.h>
 
 vec3 color(ray r, struct sphere *spheres, int nsph, int depth) {
   hit_record rec;
-  if (world_hit(spheres, nsph, &r, 0.001, MAXFLOAT, &rec)) {
+  if (world_hit(spheres, nsph, &r, 0.001, FLT_MAX, &rec)) {
     ray scattered;
     vec3 attenuation;
-    if (depth < 8 && rec.mat->scatter(rec.mat, r, &rec, &attenuation, &scattered)) {
+    if (depth < 16 && rec.mat->scatter(rec.mat, r, &rec, &attenuation, &scattered)) {
       return vec3_multiply_vec(attenuation, color(scattered, spheres, nsph, depth+1));
     } else {
       return (vec3) { .x = 0, .y = 0, .z = 0 };
@@ -37,25 +38,30 @@ CreateTrueColorImage(Display * display, Visual * visual, unsigned char *image, i
   int i, j, s;
   unsigned char  *image32 = (unsigned char *)malloc(width * height * 4);
   unsigned char  *p = image32;
-  int ns = 100;
+  int ns = 10;
 
   struct material gray_metal = { .albedo.x = 0.8, .albedo.y = 0.8, .albedo.z = 0.8, .scatter = metal_scatter };
   struct material gold_metal = { .albedo.x = 0.8, .albedo.y = 0.6, .albedo.z = 0.2, .scatter = metal_scatter  };
   struct material red_ceramic = { .albedo.x = 0.65, .albedo.y = 0.1, .albedo.z = 0.1, .scatter = lambertian_scatter };
   struct material yellow_ceramic = { .albedo.x = 0.8, .albedo.y = 0.8, .albedo.z = 0.0, .scatter = lambertian_scatter };
+  struct material blue_ceramic = { .albedo.x = 0.1, .albedo.y = 0.1, .albedo.z = 0.8, .scatter = lambertian_scatter };
+  struct material green_ceramic = { .albedo.x = 0.1, .albedo.y = 0.8, .albedo.z = 0.1, .scatter = lambertian_scatter };
   struct material dielectric = { .ref_idx = 1.5, .scatter = dielectric_scatter };
 
   struct sphere world[] = {
-    { .center.x = 0, .center.y = 0, .center.z = -1, .radius = 0.5, .mat = & yellow_ceramic },
-    { .center.x = -1, .center.y = 0, .center.z = -1, .radius = 0.5, .mat = & gold_metal },
-    { .center.x = 1, .center.y = 0, .center.z = -1, .radius = 0.5, .mat = & dielectric },
-    { .center.x = 1, .center.y = 0, .center.z = -1, .radius = -0.45, .mat = & dielectric },
+    { .center.x = 0, .center.y = 0, .center.z = -1, .radius = 0.1, .mat = & blue_ceramic },
+    { .center.x = -1, .center.y = 0, .center.z = -1, .radius = 0.4, .mat = & gold_metal },
+    { .center.x = 0, .center.y = 0, .center.z = 0, .radius = 0.2, .mat = & green_ceramic },
+    { .center.x = 0, .center.y = 0, .center.z = -2, .radius = 0.5, .mat = & gray_metal },
+    { .center.x = 1, .center.y = 0, .center.z = -1, .radius = 0.2, .mat = & dielectric },
+    { .center.x = 1, .center.y = 0, .center.z = -1, .radius = -0.15, .mat = & dielectric },
+
     { .center.x = 0, .center.y = -100.5, .center.z = -1, .radius = 100, .mat = & red_ceramic  }
   };
-  vec3 lookfrom = (vec3) { .x = 3, .y = 3, .z = 2 };
-  vec3 lookat   = (vec3) { .x = 0, .y = 0, .z = -1 };
+  vec3 lookfrom =  { .x = 3, .y = 1, .z = 3 };
+  vec3 lookat   =  { .x = 0, .y = 0, .z = -1 };
   float dist_to_focus = vec3_length(vec3_subtract_vec(lookfrom, lookat));
-  float aperture = 2.0;
+  float aperture = 1.0;
   camera cam;
   camera_pos(
       &cam,
@@ -84,6 +90,8 @@ CreateTrueColorImage(Display * display, Visual * visual, unsigned char *image, i
       *p++ = (int)col.y;
       *p++ = (int)col.x;
       *p++ = 0;
+
+      printf("\r%.02f%%", (float)  ((i*width+j) / (float) (height*width) * 100.0) );
       }
     }
   return XCreateImage(display, visual, 24, ZPixmap, 0, (char*)image32, width, height, 32, 0);
@@ -121,9 +129,9 @@ main(int argc, char **argv)
     fprintf(stderr, "Cannot handle non true color visual ...\n");
     exit(1);
   }
-  ximage = CreateTrueColorImage(display, visual, 0, width, height);
   XSelectInput(display, window, ButtonPressMask | ExposureMask );
   XMapWindow(display, window);
+  ximage = CreateTrueColorImage(display, visual, 0, width, height);
   while (1) {
     processEvent(display, window, ximage, width, height);
   }
