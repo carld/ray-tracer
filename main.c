@@ -11,6 +11,7 @@
 #include "material.h"
 #include <float.h>
 
+int width = 800, height = 400;
 int sample_counter = 0;
 
 struct material gray_metal = { .albedo.x = 0.8, .albedo.y = 0.8, .albedo.z = 0.8, .scatter = metal_scatter };
@@ -29,9 +30,9 @@ struct sphere world[] = {
   { .center.x = 1, .center.y = 0, .center.z = -1, .radius = 0.5, .mat = & dielectric },
   { .center.x = 1, .center.y = 0, .center.z = -1, .radius = -0.49, .mat = & dielectric },
 
-  { .center.x = 0, .center.y = -100.5, .center.z = -1, .radius = 100, .mat = & red_ceramic  }
+  //{ .center.x = 0, .center.y = -100.5, .center.z = -1, .radius = 100, .mat = & red_ceramic  }
 };
-vec3 lookfrom =  { .x = 3, .y = 1, .z = 3 };
+vec3 lookfrom =  { .x = 3, .y = 1.0, .z = 3 };
 vec3 lookat   =  { .x = 0, .y = 0, .z = -1 };
 camera cam;
 
@@ -105,10 +106,10 @@ UpdateTrueColorImage(Display * display, Visual * visual, unsigned char *image, i
         *p++ = 0;
       }
 
-      printf("\r%.02f%%", (float)  ((i*width+j) / (float) (height*width) * 100.0) );
+      //printf("\r%.02f%%", (float)  ((i*width+j) / (float) (height*width) * 100.0) );
       }
     }
-  printf("\n");
+  //printf("\n");
   return XCreateImage(display, visual, 24, ZPixmap, 0, (char*)image, width, height, 32, 0);
 }
 
@@ -140,7 +141,6 @@ int
 main(int argc, char **argv)
 {
   XImage         *ximage = NULL;
-  int    width = 640, height = 320;
   unsigned char *image32 = (unsigned char *)calloc(width * height * 4, sizeof(unsigned char));
   Display        *display = XOpenDisplay(NULL);
   Visual         *visual = DefaultVisual(display, 0);
