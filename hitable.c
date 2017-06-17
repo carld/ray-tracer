@@ -3,6 +3,9 @@
 #include "material.h"
 
 struct material gold_metal ;
+struct material white_light ;
+struct material blue_light ;
+struct material black_metal ;
 
 #if 0
 int sphere_bounding_box(sphere *sp, float t0, float t1, aarb *box) {
@@ -63,7 +66,7 @@ int grid_hit(const ray *r, float t_min, float t_max, hit_record *hit) {
 
   float r1 = fabsf(modff(hit->p.x, &fl));
   float r2 = fabsf(modff(hit->p.z, &fl));
-  if (r1 < 0.1 || r2 < 0.1) {
+  if (r1 < 0.01 || r2 < 0.01) {
     hit->normal = (vec3) { .x = 0, .y = 1, .z = 0 };
     return 1;
   }
@@ -84,10 +87,16 @@ int world_hit(struct sphere *spheres, int n, const ray *r, float t_min, float t_
     }
   }
 
+  if (plane_hit(r, t_min, closest_so_far, &temp)) {
+    hit_anything = 1;
+    *hit = temp;
+    hit->mat = &black_metal;
+  }
+
   if (grid_hit(r, t_min, closest_so_far, &temp)) {
     hit_anything = 1;
     *hit = temp;
-    hit->mat = &gold_metal;
+    hit->mat = &blue_light;
   }
 
   return hit_anything;

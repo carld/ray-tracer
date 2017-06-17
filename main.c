@@ -11,16 +11,22 @@
 #include "material.h"
 #include <float.h>
 
-int width = 800, height = 400;
+int width = 1000, height = 500;
 int sample_counter = 0;
+unsigned char *image32;
 
-struct material gray_metal = { .albedo.x = 0.8, .albedo.y = 0.8, .albedo.z = 0.8, .scatter = metal_scatter };
-struct material gold_metal = { .albedo.x = 0.8, .albedo.y = 0.6, .albedo.z = 0.2, .scatter = metal_scatter  };
-struct material red_ceramic = { .albedo.x = 0.65, .albedo.y = 0.1, .albedo.z = 0.1, .scatter = lambertian_scatter };
-struct material yellow_ceramic = { .albedo.x = 0.8, .albedo.y = 0.8, .albedo.z = 0.0, .scatter = lambertian_scatter };
-struct material blue_ceramic = { .albedo.x = 0.1, .albedo.y = 0.1, .albedo.z = 0.8, .scatter = lambertian_scatter };
-struct material green_ceramic = { .albedo.x = 0.1, .albedo.y = 0.8, .albedo.z = 0.1, .scatter = lambertian_scatter };
+#define BLACK (vec3){.x = 0, .y = 0, .z = 0}
+
+struct material gray_metal = { .albedo.x = 0.8, .albedo.y = 0.8, .albedo.z = 0.8, .scatter = metal_scatter, .emit = BLACK };
+struct material gold_metal = { .albedo.x = 0.8, .albedo.y = 0.6, .albedo.z = 0.2, .scatter = metal_scatter, .emit = BLACK  };
+struct material black_metal = { .albedo.x = 0.1, .albedo.y = 0.1, .albedo.z = 0.1, .scatter = metal_scatter, .emit = BLACK  };
+struct material red_ceramic = { .albedo.x = 0.65, .albedo.y = 0.1, .albedo.z = 0.1, .scatter = lambertian_scatter, .emit = BLACK };
+struct material yellow_ceramic = { .albedo.x = 0.8, .albedo.y = 0.8, .albedo.z = 0.0, .scatter = lambertian_scatter, .emit = BLACK };
+struct material blue_ceramic = { .albedo.x = 0.1, .albedo.y = 0.1, .albedo.z = 0.8, .scatter = lambertian_scatter, .emit = BLACK };
+struct material green_ceramic = { .albedo.x = 0.1, .albedo.y = 0.8, .albedo.z = 0.1, .scatter = lambertian_scatter, .emit =BLACK };
 struct material dielectric = { .ref_idx = 1.5, .scatter = dielectric_scatter };
+struct material white_light = { .emit = (vec3) {.x = 0.9, .y = 0.9, .z = 0.9}, .scatter = lambertian_scatter};
+struct material blue_light = { .albedo = (vec3) {.x = 0, .y =0, .z =0.5 }, .emit = (vec3) {.x = 0.1, .y = 0.1, .z = 0.5}, .scatter = metal_scatter};
 
 struct sphere world[] = {
   { .center.x = 0, .center.y = 0, .center.z = -1, .radius = 0.1, .mat = & blue_ceramic },
@@ -31,8 +37,10 @@ struct sphere world[] = {
   { .center.x = 1, .center.y = 0, .center.z = -1, .radius = -0.49, .mat = & dielectric },
 
   //{ .center.x = 0, .center.y = -100.5, .center.z = -1, .radius = 100, .mat = & red_ceramic  }
+
+  { .center.x = -1, .center.y = 1, .center.z = -1, .radius = .5, .mat = & white_light }
 };
-vec3 lookfrom =  { .x = 3, .y = 1.0, .z = 3 };
+vec3 lookfrom =  { .x = 3, .y = 2.0, .z = 3 };
 vec3 lookat   =  { .x = 0, .y = 0, .z = -1 };
 camera cam;
 
@@ -41,12 +49,16 @@ vec3 color(ray r, struct sphere *spheres, int nsph, int depth) {
   if (world_hit(spheres, nsph, &r, 0.001, FLT_MAX, &rec)) {
     ray scattered;
     vec3 attenuation;
+
     if (depth < 16 && rec.mat->scatter(rec.mat, r, &rec, &attenuation, &scattered)) {
-      return vec3_multiply_vec(attenuation, color(scattered, spheres, nsph, depth+1));
+      return
+        vec3_add_vec(rec.mat->emit,
+          vec3_multiply_vec(attenuation, color(scattered, spheres, nsph, depth+1)));
     } else {
-      return (vec3) { .x = 0, .y = 0, .z = 0 };
+      return rec.mat->emit;
+      //return (vec3) { .x = 0, .y = 0, .z = 0 };
     }
-  } else {
+  } else { /* no intersection of ray with objects */
     vec3 unit_direction = unit_vector(r.B);
     float t = 0.5f * (unit_direction.y + 1.0);
     vec3 white = { .x = 1.0f, .y = 1.0f, .z = 1.0f };
@@ -54,6 +66,7 @@ vec3 color(ray r, struct sphere *spheres, int nsph, int depth) {
     vec3 v_ = vec3_add_vec(vec3_multiply_float(white, 1.0f - t),
                           vec3_multiply_float(blue, t));
     return v_;
+    //return BLACK;
   }
 }
 
@@ -120,13 +133,20 @@ processEvent(Display * display, Window window, XImage * ximage, int width, int h
   XNextEvent(display, &ev);
   switch (ev.type) {
   case Expose:
+    /*if (ev.xexpose.count == 0) {*/
     XPutImage(display, window, DefaultGC(display, 0), ximage, 0, 0, 0, 0, width, height);
     break;
   case ConfigureNotify:
+    if (ev.xconfigure.width * ev.xconfigure.height > width * height) {
+      free(image32);
+      image32 = (unsigned char *)calloc(width * height * 4, sizeof(unsigned char));
+    }
     width = ev.xconfigure.width;
     height = ev.xconfigure.height;
-    ximage = UpdateTrueColorImage(display, DefaultVisual(display, 0), 0, width, height, sample_counter);
-    XPutImage(display, window, DefaultGC(display, 0), ximage, 0, 0, 0, 0, width, height);
+    sample_counter = 0;
+    printf("Resize %d %d\n", ev.xconfigure.width, ev.xconfigure.height);
+    //ximage = UpdateTrueColorImage(display, DefaultVisual(display, 0), image32, width, height, sample_counter);
+    //XPutImage(display, window, DefaultGC(display, 0), ximage, 0, 0, 0, 0, width, height);
     break;
   case KeyPress:
     if(ev.xkey.keycode == 0x09)
@@ -141,7 +161,6 @@ int
 main(int argc, char **argv)
 {
   XImage         *ximage = NULL;
-  unsigned char *image32 = (unsigned char *)calloc(width * height * 4, sizeof(unsigned char));
   Display        *display = XOpenDisplay(NULL);
   Visual         *visual = DefaultVisual(display, 0);
   Window    window = XCreateSimpleWindow(display, RootWindow(display, 0), 0, 0, width, height, 1, 0, 0);
@@ -149,9 +168,14 @@ main(int argc, char **argv)
     fprintf(stderr, "Cannot handle non true color visual ...\n");
     exit(1);
   }
-  XSelectInput(display, window, ButtonPressMask | KeyPressMask | KeyReleaseMask | ExposureMask );
+  XSelectInput(display, window,
+    ButtonPressMask | KeyPressMask | KeyReleaseMask
+    | ExposureMask
+  //  | StructureNotifyMask
+  );
   XMapWindow(display, window);
 
+  image32 = (unsigned char *)calloc(width * height * 4, sizeof(unsigned char));
   ximage = UpdateTrueColorImage(display, visual, image32, width, height, sample_counter);
   while (1) {
     XEvent ev;

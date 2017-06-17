@@ -1,6 +1,9 @@
 #include <stdlib.h>
 #include "material.h"
 
+int no_scatter(material *mat, ray r_in, struct hit_record *rec, vec3 *attenuation, ray *scattered) {
+  return 0;
+}
 
 int lambertian_scatter(material *mat, ray r_in, struct hit_record *rec, vec3 *attenuation, ray *scattered) {
   vec3 target = vec3_add_vec(
@@ -80,4 +83,3 @@ int dielectric_scatter(material *mat, ray r_in, hit_record *rec, vec3 *attenuati
   }
   return 1;
 }
-
