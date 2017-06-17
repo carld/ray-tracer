@@ -3,7 +3,7 @@ ARCH=$(shell uname -m)
 
 #CC=/usr/local/bin/gcc-7
 
-CFLAGS=-Wall -ansi -g -ggdb -O3
+CFLAGS=-Wall -ansi -g -ggdb -O3 -pedantic -std=c99
 CFLAGS+= -I/usr/X11/include
 #CFLAGS+= -pg -fprofile-arcs -ftest-coverage
 LFLAGS= -L/usr/X11/lib -lX11

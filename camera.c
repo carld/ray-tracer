@@ -35,7 +35,7 @@ vec3 random_in_unit_disk() {
 }
 
 ray camera_cast_ray(camera *cam, float s, float t) {
-  vec3 rd = vec3_multiply(random_in_unit_disk(), cam->lens_radius);
+  vec3 rd = vec3_multiply_int(random_in_unit_disk(), cam->lens_radius);
   vec3 offset = vec3_add_vec(
                   vec3_multiply_float(cam->u, rd.x),
                   vec3_multiply_float(cam->v, rd.y));

@@ -11,7 +11,7 @@ typedef struct vec3 {
 
 float vec3_length(vec3 v);
 float vec3_squared_length(vec3 v);
-vec3 vec3_multiply(vec3 v1, int n);
+vec3 vec3_multiply_int(vec3 v1, int n);
 vec3 vec3_multiply_float(vec3 v1, float n);
 vec3 vec3_multiply_vec(vec3 v1, vec3 v2);
 vec3 vec3_divide(vec3 v1, int n);
