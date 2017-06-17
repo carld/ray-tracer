@@ -19,7 +19,7 @@ vec3 vec3_divide_float(vec3 v1, float n);
 vec3 vec3_add_vec(vec3 v1, vec3 v2);
 vec3 vec3_subtract_vec(vec3 v1, vec3 v2);
 vec3 vec3_subtract_float(vec3 v1, float n);
-vec3 unit_vector(vec3 v1);
+vec3 vec3_unit_vector(vec3 v1);
 float vec3_dot(vec3 v1, vec3 v2);
 vec3 vec3_cross(vec3 v1, vec3 v2);
 

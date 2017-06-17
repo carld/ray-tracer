@@ -48,7 +48,7 @@ vec3 vec3_subtract_float(vec3 v1, float n) {
   return v_;
 }
 
-vec3 unit_vector(vec3 v1) {
+vec3 vec3_unit_vector(vec3 v1) {
   vec3 v_ = vec3_divide_float(v1, vec3_length(v1));
   return v_;
 }

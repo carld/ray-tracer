@@ -22,14 +22,14 @@ vec3 reflect(vec3 v, vec3 n) {
 }
 
 int metal_scatter(material *mat, ray r_in, struct hit_record *rec, vec3 *attenuation, ray *scattered) {
-  vec3 reflected = reflect(unit_vector(r_in.B), rec->normal);
+  vec3 reflected = reflect(vec3_unit_vector(r_in.B), rec->normal);
   *scattered = (ray) { .A = rec->p, .B = reflected };
   *attenuation = mat->albedo;
   return vec3_dot(scattered->B, rec->normal) > 0;
 }
 
 int refract(vec3 v, vec3 n, float ni_over_nt, vec3 *refracted) {
-  vec3 uv = unit_vector(v);
+  vec3 uv = vec3_unit_vector(v);
   float dt = vec3_dot(uv, n);
   float discriminant = 1.0 - ni_over_nt * ni_over_nt * (1 - dt * dt);
   if (discriminant > 0) {

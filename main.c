@@ -59,7 +59,7 @@ vec3 color(ray r, struct sphere *spheres, int nsph, int depth) {
       //return (vec3) { .x = 0, .y = 0, .z = 0 };
     }
   } else { /* no intersection of ray with objects */
-    vec3 unit_direction = unit_vector(r.B);
+    vec3 unit_direction = vec3_unit_vector(r.B);
     float t = 0.5f * (unit_direction.y + 1.0);
     vec3 white = { .x = 1.0f, .y = 1.0f, .z = 1.0f };
     vec3 blue = { .x = 0.5f, .y = 0.7f, .z = 1.0f };
@@ -175,7 +175,7 @@ main(int argc, char **argv)
   );
   XMapWindow(display, window);
 
-  image32 = (unsigned char *)calloc(width * height * 4, sizeof(unsigned char));
+  image32 = calloc(width * height * 4, sizeof(unsigned char));
   ximage = UpdateTrueColorImage(display, visual, image32, width, height, sample_counter);
   while (1) {
     XEvent ev;

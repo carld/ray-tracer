@@ -8,8 +8,8 @@ void camera_pos(camera *cam, vec3 lookfrom, vec3 lookat, vec3 vup, float vfov, f
   float half_height = tan (theta / 2.0);
   float half_width = aspect * half_height;
   cam->origin = lookfrom;
-  cam->w = unit_vector( vec3_subtract_vec( lookfrom, lookat ) );
-  cam->u = unit_vector( vec3_cross( vup, cam->w ) );
+  cam->w = vec3_unit_vector( vec3_subtract_vec( lookfrom, lookat ) );
+  cam->u = vec3_unit_vector( vec3_cross( vup, cam->w ) );
   cam->v = vec3_cross( cam->w, cam->u );
   cam->lower_left_corner =
   vec3_subtract_vec(
