@@ -23,4 +23,6 @@ vec3 vec3_unit_vector(vec3 v1);
 float vec3_dot(vec3 v1, vec3 v2);
 vec3 vec3_cross(vec3 v1, vec3 v2);
 
+#define vec3_op(a,op,b,c) a.x = b.x op c.x; a.y = b.y op c.y; a.z = b.z op c.z;
+
 #endif
