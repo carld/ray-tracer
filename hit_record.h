@@ -6,6 +6,7 @@
 struct material;
 
 typedef struct hit_record {
+  float u, v;
   float t;
   vec3 p;
   vec3 normal;
